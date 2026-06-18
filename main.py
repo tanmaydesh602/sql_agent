@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from database import seed, get_schema_string, get_dynamic_schema
+from database import get_dynamic_schema
 from agent import ask
 
 app = FastAPI(title="SQL Agent")
@@ -60,13 +60,6 @@ def query(req: QueryRequest):
 @app.get("/schema")
 def schema():
     return {"name": active_db["name"], "schema": active_db["schema"]}
-
-@app.post("/reset")
-def reset():
-    active_db["path"] = "sql_agent.db"
-    active_db["schema"] = get_schema_string()
-    active_db["name"] = "sql_agent.db (default)"
-    return {"message": "Reset to default database."}
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

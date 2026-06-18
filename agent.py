@@ -5,7 +5,7 @@ import json
 import sqlite3
 from openai import OpenAI
 from dotenv import load_dotenv
-from database import get_schema_string, run_query, DB_PATH
+from database import run_query
 
 load_dotenv()
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -19,7 +19,7 @@ SYSTEM_PROMPT = f"""You are a SQL expert assistant for a SQLite database.
 Your job is to convert natural language questions into SQL queries and explain the results.
 
 DATABASE SCHEMA:
-{get_schema_string()}
+{{SCHEMA}}
 
 TODAY'S DATE: Use DATE('now') in SQLite for any relative date calculations.
 
@@ -44,15 +44,13 @@ def is_destructive(sql: str) -> bool:
     return bool(DESTRUCTIVE_PATTERN.search(sql))
 
 
-def ask(question: str, history: list[dict], db_path: str = DB_PATH, schema: str = None) -> dict:
-    if schema is None:
-        schema = get_schema_string()
+def ask(question, history, db_path, schema) -> dict:
 
     history_text = ""
     for turn in history:
         history_text += f"User: {turn['question']}\nAssistant: {turn['answer']}\n\n"
 
-    prompt = SYSTEM_PROMPT.replace(get_schema_string(), schema)
+    prompt = SYSTEM_PROMPT.replace("{{SCHEMA}}", schema)
 
     full_prompt = prompt
     if history_text:
